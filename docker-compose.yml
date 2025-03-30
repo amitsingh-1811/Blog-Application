@@ -1,0 +1,32 @@
+services:
+  mongodb:
+    image: mongo:latest
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+      MONGO_INITDB_DATABASE: blog-application
+    ports:
+      - "27017:27017"  
+    volumes:
+      - mongo_data:/data/db
+      - mongo_config:/data/configdb
+  backend:  # This defines a service named "backend"
+    build: 
+      context: ./
+      dockerfile: DockerFile
+    restart: always  # Ensures the container restarts automatically if it crashes or the system reboots
+    volumes:
+      - .:/Backend_blog_application
+      - /Backend_blog_application/node_modules
+    command: ["npx", "nodemon", "--legacy-watch", "server.js"]
+    env_file:
+      - .env  # Loads environment variables from the .env file
+    ports:
+      - "${PORT}:${PORT}"  # Maps the port dynamically based on the .env file value
+    depends_on:
+      - mongodb  # Ensures the backend starts only after MongoDB is up
+
+volumes:
+  mongo_data:
+  mongo_config:
