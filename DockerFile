@@ -1,0 +1,17 @@
+#Use an official node.js image with desired version
+FROM node:22.13.1
+
+#Set the working directory in the container
+WORKDIR /Backend_blog_application
+
+#Copy package.json and package-lock.json(if available)
+COPY package*.json ./
+
+#Install dependencies
+RUN npm install --build-from-source
+
+#Copy the rest of the code into container
+COPY . .
+
+#Start the application
+CMD ["npm","start"]

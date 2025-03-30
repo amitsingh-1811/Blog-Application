@@ -1,4 +1,4 @@
-//const ErrorHandler = require("../utils/errorhandler");
+const ErrorHandler = require("../utils/errorhandler");
 const jwt = require("jsonwebtoken");
 const User = require("../models/userModel")
 
@@ -14,11 +14,7 @@ exports.isAuthenticatedUser =  async function(req,res,next){
         }
 
         const decodedData =  jwt.verify(token,process.env.JWT_SECRET);
-        
-        //console.log("decoded data => ",decodedData);
         req.user = await User.findById(decodedData.id);
-        //console.log("req.user => ",req.user);
-
         next();
     }
 
@@ -27,3 +23,25 @@ exports.isAuthenticatedUser =  async function(req,res,next){
     }
 
 };
+
+exports.emailVerification = async function(req, res, next){
+    try{
+        const {token} = req.query;
+
+        if(!token){
+            return res.status(400).send("Invalid verification link.");
+        }
+
+        console.log("token=> ",token)
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        console.log("decodeId=> ",decoded.id)
+        req.id = decoded.id
+
+        console.log("id=> ",req.id)
+        next()
+    }
+
+    catch(error){
+        res.status(400).send(`some error occured. error is ${error}`)
+    }
+}

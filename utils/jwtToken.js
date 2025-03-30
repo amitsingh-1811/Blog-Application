@@ -1,6 +1,7 @@
 const sendToken = (user,statusCode,res)=>{
 
     const token = user.getJWTToken();
+    console.log("token after formation=> ",token)
     
     //options for cookie
     const options = {
@@ -13,7 +14,7 @@ const sendToken = (user,statusCode,res)=>{
     res.status(statusCode).cookie("token",token,options).json({
         success:true,
         user,
-        token
+        token: token
     });
 };
 
