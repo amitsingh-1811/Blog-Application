@@ -11,6 +11,24 @@ services:
     volumes:
       - mongo_data:/data/db
       - mongo_config:/data/configdb
+  redis:
+    image: redis:latest
+    container_name: my_redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_volume:/data
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+    command: [
+      "redis-server",
+      "--maxmemory", "100mb",
+      "--maxmemory-policy", "allkeys-lfu",
+      "--appendonly", "yes",
+      "--requirepass", "${REDIS_PASSWORD}"
+    ]
+      
   backend:  # This defines a service named "backend"
     build: 
       context: ./
@@ -18,7 +36,7 @@ services:
     restart: always  # Ensures the container restarts automatically if it crashes or the system reboots
     volumes:
       - .:/Backend_blog_application
-      - /Backend_blog_application/node_modules
+      - node_modules_volume:/Backend_blog_application/node_modules
     command: ["npx", "nodemon", "--legacy-watch", "server.js"]
     env_file:
       - .env  # Loads environment variables from the .env file
@@ -30,3 +48,5 @@ services:
 volumes:
   mongo_data:
   mongo_config:
+  redis_volume:
+  node_modules_volume:

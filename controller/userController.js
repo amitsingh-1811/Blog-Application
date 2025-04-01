@@ -4,6 +4,7 @@ const ErrorHandler = require("../utils/errorhandler");
 const sendToken = require("../utils/jwtToken");
 const jwt = require("jsonwebtoken");
 const nodemailer = require('nodemailer');
+const { clearRedisSet } = require("../utils/cache");
 
 exports.registerUser = async (req,res,next)=> {
 
@@ -52,6 +53,7 @@ exports.loginUser = async function(req,res,next) {
         if(isPasswordMatched)
         {
             if(user.isVerified){
+                clearRedisSet()
                 return sendToken(user,201,res);
             }
 
