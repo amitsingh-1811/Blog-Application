@@ -5,9 +5,6 @@ const {
     getCachedBlogs,
     incrementBlogFrequency,
     getBlogFrequency,
-    addToCacheIndex,
-    isBlogSent,
-    getCacheIndex,
     getBlogFromCache,
     deleteBlogFromCache
   } = require("../utils/cache");
@@ -149,52 +146,33 @@ exports.deleteBlog = async (req,res,next) => {
 
 //GET ALL BLOG
 exports.getAllBlog = async (req, res) => {
-    
-    try {
-        const page = parseInt(req.query.page) || 1;
-        const limit = 9;
-        const skip = (page-2) * limit;
-    
-        if (page === 1) {
-          // First request: Send all cached blogs
-          const cachedBlogs = await getCachedBlogs();
-          console.log("inside page==1")
-          return res.status(200).json({ success: true, blogs: cachedBlogs, fromCache: true });
-        }
-    
-        // Get list of sent blogs
-        const sentBlogIds = await getCacheIndex();
-    
-        // Fetch next set of blogs from DB, excluding already sent ones
-        let query = {};
-        if (sentBlogIds.length > 0) {
-          query = { _id: { $nin: sentBlogIds } };
-        }
-    
-        console.log("query=> ",query)
-        let blogs = await Blog.find(query).skip(skip).limit(limit);
-        console.log("blogs=> ",blogs)
-    
-        // Update frequency count and check if blogs should be cached
-        for (let blog of blogs) {
-          const blogIdStr = blog._id.toString();
-          
-          // Increment frequency
-          const freq = await incrementBlogFrequency(blogIdStr);
-          console.log("freq=> ",freq)
-          
-          // If frequency exceeds threshold (e.g., 5), store it in cache
-          if (freq >= 5) {
-            await saveBlogToCache(blog);
-          }
-    
-          // Mark blog as sent
-          await addToCacheIndex(blogIdStr);
-        }
-    
-        res.status(200).json({ success: true, blogs, fromCache: false });
-      } catch (error) {
-        console.error("Error fetching blogs:", error);
-        res.status(500).json({ success: false, message: "Server Error" });
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = 9;
+    const skip = (page - 1) * limit; // page 1 -> skip 0, page 2 -> skip 9, page 3 -> skip 18
+
+    // Fetch blogs based on the page and skip/limit
+    const blogs = await Blog.find().skip(skip).limit(limit);
+
+    // Process each blog
+    for (let blog of blogs) {
+      const blogIdStr = blog._id.toString();
+
+      // Increment frequency
+      const freq = await incrementBlogFrequency(blogIdStr);
+      console.log("Frequency of blog:", blogIdStr, "is", freq);
+
+      // If frequency exceeds the threshold (e.g., 5), store it in cache
+      if (freq >= 5) {
+        await saveBlogToCache(blog); // Save blog to cache if threshold is met
+        console.log(`Blog with ID ${blogIdStr} cached after crossing threshold.`);
       }
-}
+    }
+
+    // Return the blogs
+    res.status(200).json({ success: true, blogs, fromCache: false });
+  } catch (error) {
+    console.error("Error fetching blogs:", error);
+    res.status(500).json({ success: false, message: "Server Error" });
+  }
+};

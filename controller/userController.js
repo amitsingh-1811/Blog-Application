@@ -55,7 +55,7 @@ exports.loginUser = async function(req,res,next) {
         {
             console.log("user.isVerified=> ",user.isVerified)
             if(user.isVerified==true){
-                clearRedisSet()
+                // clearRedisSet()
                 return sendToken(user,201,res);
             }
 

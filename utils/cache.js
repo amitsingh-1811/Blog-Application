@@ -69,36 +69,12 @@ const getBlogFrequency = async (blogId) => {
     return parseFloat(score) || 0;
   };
 
-// Add blog ID to cache index
-const addToCacheIndex = async (blogId) => {
-    await redis.sadd(CACHE_INDEX_KEY, blogId);
-  };
 
-
-// Check if blog has been sent before
-const isBlogSent = async (blogId) => {
-    return await redis.sismember(CACHE_INDEX_KEY, blogId);
-  };
-  
-  // Retrieve all sent blog IDs
-  const getCacheIndex = async () => {
-    return await redis.smembers(CACHE_INDEX_KEY);
-  };
-
-  //clear whole redis set which keeps data of already sent blogs
-  const clearRedisSet = async() => {
-    await redis.del(CACHE_INDEX_KEY);
-  }
-  
   module.exports = {
     saveBlogToCache,
     getCachedBlogs,
     incrementBlogFrequency,
     getBlogFrequency,
-    addToCacheIndex,
-    isBlogSent,
-    getCacheIndex,
     getBlogFromCache,
     deleteBlogFromCache,
-    clearRedisSet
   };
